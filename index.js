@@ -46,8 +46,6 @@ client.once("disconnect", () => {
 client.on("message", async message => {
   // If the bot sent the message
   if (message.author.bot) return;
-  // If the message doesn't contain the prefix
-  if (!message.content.startsWith(prefix)) return;
   // If the message is in a dm
   if (message.channel.type === "dm") return;
 
@@ -62,6 +60,8 @@ client.on("message", async message => {
   } catch (err) {
     console.log(err)
   };
+  // If the message doesn't contain the prefix
+  if (!message.content.startsWith(prefix)) return;
 
   try {
     if (message.mentions.has(bot.user) && !message.mentions.has(message.guild.id)) {
@@ -73,10 +73,10 @@ client.on("message", async message => {
 
   const serverQueue = queue.get(message.guild.id);
 
-  if ((message.content.startsWith(`${prefix}play`))||(message.content.startsWith(`${prefix}p `))) {
+  /*if ((message.content.startsWith(`${prefix}play`))||(message.content.startsWith(`${prefix}p `))) {
     execute(message, serverQueue);
     return;
-  } 
+  } */
   if ((message.content.startsWith(`${prefix}next`))||(message.content.startsWith(`${prefix}n `))) {
     skip(message, serverQueue);
     return;
