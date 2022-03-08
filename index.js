@@ -1,18 +1,35 @@
-/// Dependencies
+// Dependencies
 const Discord = require("discord.js");
-const { prefix, token } = require("./config.json");
+const { Util, MessageEmbed, Client, MessageAttachment, Collection } = require("discord.js");
+const { PREFIX, token, googleApiKey } = require("./config.json");
 const ytdl = require("ytdl-core");
 const dotenv = require ('dotenv');
-const help = require ('./components/help');
-const text = require ('./components/text');
-const cryptoPrice = require ('./components/cryptoPrice.js');
+const fs = require("fs");
+const db = require('quick.db');
+const jimp = require('jimp');
+
+// Imports
+const help = require ('./commands/help');
+const text = require ('./commands/text');
+const cryptoPrice = require ('./commands/cryptoPrice.js');
 
 // Load environment variables
 dotenv.config();
 
 // Bot instance
-const client = new Discord.Client();
-const queue = new Map();
+const client = new Discord.Client({ disableMentions: 'everyone' });
+const queue = new Collection();
+client.phone = new Collection();
+client.commands = new Collection();
+client.aliases = new Collection();
+
+// Improved importing commands
+["aliases", "commands"].forEach(x => client[x] = new Collection());
+["console", "command", "event"].forEach(x => require(`./handler/${x}`)(client));
+client.categories = fs.readdirSync("./commands/");
+["command"].forEach(handler => {
+    require(`./handler/${handler}`)(client);
+});
 
 // Log to console when the bot is ready
 client.once("ready", () => {
@@ -31,6 +48,28 @@ client.on("message", async message => {
   if (message.author.bot) return;
   // If the message doesn't contain the prefix
   if (!message.content.startsWith(prefix)) return;
+  // If the message is in a dm
+  if (message.channel.type === "dm") return;
+
+  //Get prefix for server
+  try {
+    let fetched = await db.fetch(`prefix_${message.guild.id}`);
+    if (fetched == null) {
+        prefix = PREFIX
+    } else {
+        prefix = fetched
+    }
+  } catch (err) {
+    console.log(err)
+  };
+
+  try {
+    if (message.mentions.has(bot.user) && !message.mentions.has(message.guild.id)) {
+        return message.channel.send(`**My Prefix In This Server is - \`${prefix}\`**`)
+    }
+  } catch {
+    return;
+  };
 
   const serverQueue = queue.get(message.guild.id);
 
@@ -103,11 +142,10 @@ async function execute(message, serverQueue)
     };
 
     queue.set(message.guild.id, queueContruct);
-
     queueContruct.songs.push(song);
 
     try {
-      var connection = await voiceChannel.join();
+      let connection = await voiceChannel.join();
       queueContruct.connection = connection;
       play(message.guild, queueContruct.songs[0]);
     } catch (err) {
