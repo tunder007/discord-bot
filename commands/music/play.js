@@ -14,7 +14,8 @@ module.exports = {
         accessableby: "everyone"
     },
     run: async (client, message, args, ops) => {
-        if (!args[0]) return message.channel.send("**Please Enter Song Name Or Link!**")
+        if (!args[0]) 
+            return message.channel.send("Please Enter Song Name Or Link!")
         args = message.content.split(' ');
         const searchString = args.slice(1).join(' ');
         const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
@@ -35,17 +36,17 @@ module.exports = {
                 const video2 = await youtube.getVideoByID(video.id);
                 await handleVideo(video2, message, channel, true);
             }
-            return message.channel.send(`**Playlist \`${playlist.title}\` has been added to the queue!**`);
+            return message.channel.send(`Playlist \`${playlist.title}\` has been added to the queue!`);
         }
         try {
-            var video = await youtube.getVideo(url);
+            let video = await youtube.getVideo(url);
         } catch (error) {
             try {
                 var videos = await youtube.searchVideos(searchString, 1);
                 var video = await youtube.getVideoByID(videos[0].id);
             } catch (err) {
                 console.error(err)
-                return message.channel.send('**No Matches!**')
+                return message.channel.send('No Matches!')
             }
         }
         return handleVideo(video, message, channel);
@@ -121,7 +122,7 @@ module.exports = {
                 .setTitle('Now Playing\n')
                 .setThumbnail(song.thumbnail)
                 .setTimestamp()
-                .setDescription(`🎵 Now playing:\n **${song.title}** 🎵\n\n Song Length: **${np}**`)
+                .setDescription(`🎵 Now playing:\n${song.title} \n\n Song Length: ${np}`)
                 .setFooter(message.member.displayName, message.author.displayAvatarURL());
             queue.textChannel.send(embed);
         };
